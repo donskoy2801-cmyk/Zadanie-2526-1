@@ -1,0 +1,145 @@
+int isPrime(int x) {
+    int i;
+    if (x < 2) return 0;
+    if (x == 2) return 1;
+    if (x % 2 == 0) return 0;
+    for (i = 3; i * i <= x; i += 2) {
+        if (x % i == 0) return 0;
+    }
+    return 1;
+}
+
+int main(int argc, char *argv[]) {
+    FILE *in;
+    int a[128];
+    int n = 0;
+
+    int bPosPrime[128], nbPosPrime = 0;  // a) элементы на простых позициях
+    int bOdd[128], nbOdd = 0;            // b) нечётные элементы
+
+    int i;
+
+    long long sum = 0;                   // для среднего арифм.
+    double geom = 1.0;                   // для среднего геом.
+    int geomOk = 1;                      // можно ли считать геом. среднее
+    double harmSum = 0.0;                // сумма 1/x для гармонич.
+    int harmOk = 1;                      // можно ли считать гармонич.
+
+    int minVal, maxVal;
+
+    long long sumPrimeElements = 0;      // g) сумма простых элементов (по значению)
+    long long sumEvenPositive = 0;       // g) сумма чётных положительных
+
+    if (argc != 2) {
+        printf("Нужно: %s input.txt\n", argv[0]);
+        return 1;
+    }
+
+    in = fopen(argv[1], "r");
+    if (in == NULL) {
+        printf("Не могу открыть файл\n");
+        return 1;
+    }
+
+    while (n < 128 && fscanf(in, "%d", &a[n]) == 1) {
+        n++;
+    }
+    fclose(in);
+
+    if (n == 0) {
+        printf("Файл пустой (нет чисел)\n");
+        return 0;
+    }
+
+    minVal = a[0];
+    maxVal = a[0];
+
+    for (i = 0; i < n; i++) {
+        int pos = i + 1; // позиции считаем с 1
+
+        // a) элементы на позициях-простых
+        if (isPrime(pos)) {
+            bPosPrime[nbPosPrime] = a[i];
+            nbPosPrime++;
+        }
+
+        // b) нечётные числа
+        if (a[i] % 2 != 0) {
+            bOdd[nbOdd] = a[i];
+            nbOdd++;
+        }
+
+        // c) среднее арифметическое
+        sum += a[i];
+
+        // d) среднее геометрическое:
+        // в реальных матем. задачах для целых может быть сложно с отрицательными/нулями.
+        // Сделаем просто: если есть отрицательное -> не считаем, если есть 0 -> геом = 0.
+        if (a[i] < 0) geomOk = 0;
+        if (geomOk) {
+            if (a[i] == 0) {
+                geom = 0.0;
+            } else if (geom != 0.0) {
+                geom *= (double)a[i];
+            }
+        }
+
+        // e) среднее гармоническое: нельзя если есть 0
+        if (a[i] == 0) harmOk = 0;
+        if (harmOk) {
+            harmSum += 1.0 / (double)a[i];
+        }
+
+        // f) размах
+        if (a[i] < minVal) minVal = a[i];
+        if (a[i] > maxVal) maxVal = a[i];
+
+        // g) сумма простых элементов и сумма чётных положительных
+        if (isPrime(a[i])) sumPrimeElements += a[i];
+        if (a[i] > 0 && a[i] % 2 == 0) sumEvenPositive += a[i];
+    }
+
+    // вывод результатов
+    printf("Всего чисел: %d\n\n", n);
+
+    printf("a) Элементы на простых позициях (позиции с 1): ");
+    if (nbPosPrime == 0) printf("(нет)");
+    for (i = 0; i < nbPosPrime; i++) printf("%d ", bPosPrime[i]);
+    printf("\n");
+
+    printf("b) Нечётные элементы: ");
+    if (nbOdd == 0) printf("(нет)");
+    for (i = 0; i < nbOdd; i++) printf("%d ", bOdd[i]);
+    printf("\n\n");
+
+    // c)
+    printf("c) Среднее арифметическое: %.10g\n", (double)sum / (double)n);
+
+    // d)
+    if (!geomOk) {
+        printf("d) Среднее геометрическое: нельзя посчитать (есть отрицательные числа)\n");
+    } else {
+        if (geom == 0.0) {
+            printf("d) Среднее геометрическое: 0\n");
+        } else {
+            // geom сейчас = произведение, берём корень степени n
+            printf("d) Среднее геометрическое: %.10g\n", pow(geom, 1.0 / (double)n));
+        }
+    }
+
+    // e)
+    if (!harmOk) {
+        printf("e) Среднее гармоническое: нельзя посчитать (есть 0)\n");
+    } else {
+        printf("e) Среднее гармоническое: %.10g\n", (double)n / harmSum);
+    }
+
+    // f)
+    printf("f) Размах (max - min): %d\n", maxVal - minVal);
+
+    // g)
+    printf("g) Разность (сумма простых элементов - сумма чётных положительных): %lld\n",
+           sumPrimeElements - sumEvenPositive);
+
+    return 0;
+}

@@ -1,0 +1,71 @@
+static void intToBaseString(int n, int base, char *out) {
+    char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    char tmp[64];
+    int i = 0;
+    unsigned int x;
+
+    if (base < 2 || base > 36) {
+        out[0] = '\0';
+        return;
+    }
+
+    if (n == 0) {
+        out[0] = '0';
+        out[1] = '\0';
+        return;
+    }
+
+    // чтобы нормально обработать INT_MIN, переводим в unsigned через long long
+    if (n < 0) {
+        x = (unsigned int)(-(long long)n);
+    } else {
+        x = (unsigned int)n;
+    }
+
+    while (x > 0) {
+        tmp[i] = digits[x % (unsigned)base];
+        i++;
+        x /= (unsigned)base;
+    }
+
+    if (n < 0) {
+        tmp[i] = '-';
+        i++;
+    }
+
+    // переворачиваем tmp в out
+    {
+        int j;
+        for (j = 0; j < i; j++) {
+            out[j] = tmp[i - 1 - j];
+        }
+        out[i] = '\0';
+    }
+}
+
+int main(void) {
+    int n, base;
+    char s[64];
+
+    printf("Введите целое число (в 10-й системе): ");
+    if (scanf("%d", &n) != 1) {
+        printf("Ошибка ввода!\n");
+        return 1;
+    }
+
+    printf("Введите основание системы (2..36): ");
+    if (scanf("%d", &base) != 1) {
+        printf("Ошибка ввода!\n");
+        return 1;
+    }
+
+    intToBaseString(n, base, s);
+
+    if (s[0] == '\0') {
+        printf("Основание системы должно быть от 2 до 36!\n");
+        return 1;
+    }
+
+    printf("Результат: %s\n", s);
+    return 0;
+}

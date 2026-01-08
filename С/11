@@ -1,0 +1,45 @@
+static int myStrcmp(const char *s1, const char *s2) {
+    int i = 0;
+
+    while (s1[i] != '\0' && s2[i] != '\0') {
+        if (s1[i] != s2[i]) {
+            return (unsigned char)s1[i] - (unsigned char)s2[i];
+        }
+        i++;
+    }
+
+    return (unsigned char)s1[i] - (unsigned char)s2[i];
+}
+
+int main(void) {
+    char a[256];
+    char b[256];
+    int r;
+
+    printf("Введите первую строку: ");
+    if (!fgets(a, sizeof(a), stdin)) {
+        printf("Ошибка ввода!\n");
+        return 1;
+    }
+    if (strlen(a) > 0 && a[strlen(a) - 1] == '\n') a[strlen(a) - 1] = '\0';
+
+    printf("Введите вторую строку: ");
+    if (!fgets(b, sizeof(b), stdin)) {
+        printf("Ошибка ввода!\n");
+        return 1;
+    }
+    if (strlen(b) > 0 && b[strlen(b) - 1] == '\n') b[strlen(b) - 1] = '\0';
+
+    r = myStrcmp(a, b);
+
+    printf("myStrcmp вернула: %d\n", r);
+    if (r < 0) {
+        printf("Первая строка меньше второй.\n");
+    } else if (r > 0) {
+        printf("Первая строка больше второй.\n");
+    } else {
+        printf("Строки равны.\n");
+    }
+
+    return 0;
+}

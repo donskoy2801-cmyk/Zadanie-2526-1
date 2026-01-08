@@ -1,0 +1,109 @@
+int digitValue(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'A' && c <= 'Z') return c - 'A' + 10;
+    if (c >= 'a' && c <= 'z') return c - 'a' + 10;
+    return -1;
+}
+
+// находим минимальное основание (2..36), в котором строка может быть числом
+int findMinBase(char s[]) {
+    int i = 0;
+    int max = -1;
+
+    if (s[0] == '\0') return 0;
+
+    // пропускаем знак
+    if (s[i] == '+' || s[i] == '-') i++;
+
+    // если после знака ничего нет
+    if (s[i] == '\0') return 0;
+
+    while (s[i] != '\0') {
+        int v = digitValue(s[i]);
+        if (v == -1) return 0;          // плохой символ
+        if (v > max) max = v;
+        i++;
+    }
+
+    // основание на 1 больше максимальной "цифры"
+    if (max + 1 < 2) return 2;
+    if (max + 1 > 36) return 0;
+    return max + 1;
+}
+
+// переводим строку в int (если не получается — возвращаем 0)
+int toIntBase(char s[], int base, int *ans) {
+    int i = 0;
+    int sign = 1;
+    long long res = 0;
+
+    if (base < 2 || base > 36) return 0;
+
+    if (s[i] == '+') i++;
+    else if (s[i] == '-') { sign = -1; i++; }
+
+    if (s[i] == '\0') return 0;
+
+    while (s[i] != '\0') {
+        int v = digitValue(s[i]);
+        if (v < 0 || v >= base) return 0;
+
+        res = res * base + v;
+
+        // проверка переполнения int
+        if (sign == 1) {
+            if (res > INT_MAX) return 0;
+        } else {
+            if (-res < (long long)INT_MIN) return 0;
+        }
+
+        i++;
+    }
+
+    *ans = (int)(sign * res);
+    return 1;
+}
+
+int main(int argc, char *argv[]) {
+    FILE *in;
+    FILE *out;
+    char s[256];
+
+    if (argc != 3) {
+        printf("Нужно: %s input.txt output.txt\n", argv[0]);
+        return 1;
+    }
+
+    in = fopen(argv[1], "r");
+    if (in == NULL) {
+        printf("Не могу открыть входной файл\n");
+        return 1;
+    }
+
+    out = fopen(argv[2], "w");
+    if (out == NULL) {
+        printf("Не могу открыть выходной файл\n");
+        fclose(in);
+        return 1;
+    }
+
+    // читаем все "слова" из файла (разделители пробел/таб/перенос строки)
+    while (fscanf(in, "%255s", s) == 1) {
+        int base = findMinBase(s);
+        int value;
+
+        if (base == 0) {
+            fprintf(out, "%s\tINVALID\n", s);
+        } else {
+            if (toIntBase(s, base, &value) == 0) {
+                fprintf(out, "%s\t%d\tOVERFLOW\n", s, base);
+            } else {
+                fprintf(out, "%s\t%d\t%d\n", s, base, value);
+            }
+        }
+    }
+
+    fclose(in);
+    fclose(out);
+    return 0;
+}

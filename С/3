@@ -1,0 +1,35 @@
+static int powerInt(int a, int p) {
+    int i;
+    int res = 1;
+    for (i = 0; i < p; i++) {
+        res *= a;
+    }
+    return res;
+}
+
+static void printPowerTable(void) {
+    int n, p;
+
+    printf("Таблица степеней (n^p), n = 1..6, p = 1..10\n\n");
+
+    // шапка
+    printf("%4s", "n^p");
+    for (p = 1; p <= 10; p++) {
+        printf("%10d", p);
+    }
+    printf("\n");
+
+    // строки
+    for (n = 1; n <= 6; n++) {
+        printf("%4d", n);
+        for (p = 1; p <= 10; p++) {
+            printf("%10d", powerInt(n, p));
+        }
+        printf("\n");
+    }
+}
+
+int main(void) {
+    printPowerTable();
+    return 0;
+}

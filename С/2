@@ -1,0 +1,41 @@
+static int isPrime(int n) {
+    int i;
+    if (n < 2) return 0;      // 0 и 1 не простые
+    if (n == 2) return 1;     // 2 простое
+    if (n % 2 == 0) return 0; // четные > 2 не простые
+
+    for (i = 3; i * i <= n; i += 2) {
+        if (n % i == 0) return 0;
+    }
+    return 1;
+}
+
+int main(void) {
+    int n;
+
+    printf("Введите натуральное число n: ");
+    if (scanf("%d", &n) != 1) {
+        printf("Ошибка ввода!\n");
+        return 1;
+    }
+
+    if (n <= 0) {
+        printf("Число должно быть натуральным (>= 1)!\n");
+        return 1;
+    }
+
+    if (n == 1) {
+        printf("Число 1: не является ни простым, ни составным.\n");
+        return 0;
+    }
+
+    if (isPrime(n)) {
+        printf("Число %d является простым.\n", n);
+        printf("Число %d НЕ является составным.\n", n);
+    } else {
+        printf("Число %d НЕ является простым.\n", n);
+        printf("Число %d является составным.\n", n);
+    }
+
+    return 0;
+}

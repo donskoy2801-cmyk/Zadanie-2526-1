@@ -1,0 +1,175 @@
+void swapBytes(char *a, char *b, size_t size) {
+    size_t i;
+    for (i = 0; i < size; i++) {
+        char t = a[i];
+        a[i] = b[i];
+        b[i] = t;
+    }
+}
+
+void bubble_sort(void *base, size_t nmemb, size_t size,
+                 int (*compar)(const void *, const void *)) {
+    size_t i, j;
+    char *arr = (char*)base;
+
+    if (nmemb < 2) return;
+
+    for (i = 0; i < nmemb - 1; i++) {
+        for (j = 0; j < nmemb - 1 - i; j++) {
+            char *p1 = arr + j * size;
+            char *p2 = arr + (j + 1) * size;
+            if (compar(p1, p2) > 0) {
+                swapBytes(p1, p2, size);
+            }
+        }
+    }
+}
+
+void selection_sort(void *base, size_t nmemb, size_t size,
+                    int (*compar)(const void *, const void *)) {
+    size_t i, j, minIndex;
+    char *arr = (char*)base;
+
+    if (nmemb < 2) return;
+
+    for (i = 0; i < nmemb - 1; i++) {
+        minIndex = i;
+        for (j = i + 1; j < nmemb; j++) {
+            if (compar(arr + j * size, arr + minIndex * size) < 0) {
+                minIndex = j;
+            }
+        }
+        if (minIndex != i) {
+            swapBytes(arr + i * size, arr + minIndex * size, size);
+        }
+    }
+}
+
+void insertion_sort(void *base, size_t nmemb, size_t size,
+                    int (*compar)(const void *, const void *)) {
+    size_t i, j;
+    char *arr = (char*)base;
+
+    // буфер под текущий элемент
+    char key[256]; // для демонстрации; если size > 256, будет проблема
+    // (в учебных задачах обычно сортируют int/struct маленького размера)
+
+    if (nmemb < 2) return;
+    if (size > sizeof(key)) {
+        // простая защита, чтобы не упасть
+        return;
+    }
+
+    for (i = 1; i < nmemb; i++) {
+        memcpy(key, arr + i * size, size);
+
+        j = i;
+        while (j > 0 && compar(arr + (j - 1) * size, key) > 0) {
+            memcpy(arr + j * size, arr + (j - 1) * size, size);
+            j--;
+        }
+        memcpy(arr + j * size, key, size);
+    }
+}
+
+/* ---------- Heap sort (пирамидальная) ---------- */
+
+void siftDown(char *arr, size_t start, size_t end, size_t size,
+              int (*compar)(const void *, const void *)) {
+    size_t root = start;
+
+    while (1) {
+        size_t left = root * 2 + 1;
+        if (left > end) break;
+
+        size_t right = left + 1;
+        size_t swapIndex = root;
+
+        // хотим max-heap: родитель >= дети
+        if (compar(arr + swapIndex * size, arr + left * size) < 0) {
+            swapIndex = left;
+        }
+        if (right <= end && compar(arr + swapIndex * size, arr + right * size) < 0) {
+            swapIndex = right;
+        }
+
+        if (swapIndex == root) {
+            break;
+        } else {
+            swapBytes(arr + root * size, arr + swapIndex * size, size);
+            root = swapIndex;
+        }
+    }
+}
+
+void heap_sort(void *base, size_t nmemb, size_t size,
+               int (*compar)(const void *, const void *)) {
+    char *arr = (char*)base;
+    long long start; // чтобы удобно идти вниз до 0
+
+    if (nmemb < 2) return;
+
+    // строим max-heap
+    start = (long long)(nmemb / 2) - 1;
+    while (start >= 0) {
+        siftDown(arr, (size_t)start, nmemb - 1, size, compar);
+        start--;
+    }
+
+    // вытаскиваем максимум в конец
+    {
+        size_t end = nmemb - 1;
+        while (end > 0) {
+            swapBytes(arr + 0 * size, arr + end * size, size);
+            end--;
+            siftDown(arr, 0, end, size, compar);
+        }
+    }
+}
+
+/* ---------- Демонстрация ---------- */
+
+int cmpInt(const void *a, const void *b) {
+    int x = *(const int*)a;
+    int y = *(const int*)b;
+    if (x < y) return -1;
+    if (x > y) return 1;
+    return 0;
+}
+
+void printArray(const int *a, int n) {
+    int i;
+    for (i = 0; i < n; i++) {
+        printf("%d ", a[i]);
+    }
+    printf("\n");
+}
+
+int main(void) {
+    int a1[] = {7, 2, 9, 1, 5, 3, 8, 4, 6};
+    int a2[] = {7, 2, 9, 1, 5, 3, 8, 4, 6};
+    int a3[] = {7, 2, 9, 1, 5, 3, 8, 4, 6};
+    int a4[] = {7, 2, 9, 1, 5, 3, 8, 4, 6};
+    int n = (int)(sizeof(a1) / sizeof(a1[0]));
+
+    printf("Исходный массив:\n");
+    printArray(a1, n);
+
+    bubble_sort(a1, n, sizeof(int), cmpInt);
+    printf("\nПузырьком:\n");
+    printArray(a1, n);
+
+    selection_sort(a2, n, sizeof(int), cmpInt);
+    printf("\nВыбором:\n");
+    printArray(a2, n);
+
+    insertion_sort(a3, n, sizeof(int), cmpInt);
+    printf("\nВставками:\n");
+    printArray(a3, n);
+
+    heap_sort(a4, n, sizeof(int), cmpInt);
+    printf("\nПирамидальная (heap sort):\n");
+    printArray(a4, n);
+
+    return 0;
+}

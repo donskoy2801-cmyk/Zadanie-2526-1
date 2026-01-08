@@ -1,0 +1,39 @@
+int equalDouble(double a, double b) {
+    double eps = 1e-9;
+    return fabs(a - b) < eps;
+}
+
+int main(void) {
+    double a[] = {1.0, 2.5, 1.0, 3.14, 2.5, 2.5000000001, -7.0, -7.0, 0.0};
+    int n = (int)(sizeof(a) / sizeof(a[0]));
+
+    double b[100];
+    int m = 0;
+
+    int i, j;
+    int found;
+
+    for (i = 0; i < n; i++) {
+        found = 0;
+        for (j = 0; j < m; j++) {
+            if (equalDouble(a[i], b[j])) {
+                found = 1;
+                break;
+            }
+        }
+        if (!found) {
+            b[m] = a[i];
+            m++;
+        }
+    }
+
+    printf("Исходный массив (%d):\n", n);
+    for (i = 0; i < n; i++) printf("%.10g ", a[i]);
+    printf("\n\n");
+
+    printf("Новый массив без дубликатов (%d):\n", m);
+    for (i = 0; i < m; i++) printf("%.10g ", b[i]);
+    printf("\n");
+
+    return 0;
+}

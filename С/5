@@ -1,0 +1,34 @@
+static long long fastPowInt(long long a, unsigned int p) {
+    long long res = 1;
+
+    while (p > 0) {
+        if (p % 2 == 1) {
+            res *= a;
+        }
+        a *= a;
+        p /= 2;
+    }
+
+    return res;
+}
+
+int main(void) {
+    long long a;
+    unsigned int p;
+
+    printf("Введите целое число a: ");
+    if (scanf("%lld", &a) != 1) {
+        printf("Ошибка ввода!\n");
+        return 1;
+    }
+
+    printf("Введите целую неотрицательную степень p: ");
+    if (scanf("%u", &p) != 1) {
+        printf("Ошибка ввода!\n");
+        return 1;
+    }
+
+    printf("%lld ^ %u = %lld\n", a, p, fastPowInt(a, p));
+
+    return 0;
+}

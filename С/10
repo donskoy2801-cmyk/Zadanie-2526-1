@@ -1,0 +1,48 @@
+static char *myStrcat(char *dest, const char *src) {
+    int i = 0;
+    int j = 0;
+
+    // ищем конец dest
+    while (dest[i] != '\0') {
+        i++;
+    }
+
+    // копируем src в конец dest
+    while (src[j] != '\0') {
+        dest[i] = src[j];
+        i++;
+        j++;
+    }
+    dest[i] = '\0';
+
+    return dest;
+}
+
+int main(void) {
+    char a[256];
+    char b[256];
+
+    printf("Введите первую строку: ");
+    if (!fgets(a, sizeof(a), stdin)) {
+        printf("Ошибка ввода!\n");
+        return 1;
+    }
+    if (strlen(a) > 0 && a[strlen(a) - 1] == '\n') {
+        a[strlen(a) - 1] = '\0';
+    }
+
+    printf("Введите вторую строку: ");
+    if (!fgets(b, sizeof(b), stdin)) {
+        printf("Ошибка ввода!\n");
+        return 1;
+    }
+    if (strlen(b) > 0 && b[strlen(b) - 1] == '\n') {
+        b[strlen(b) - 1] = '\0';
+    }
+
+    printf("До конкатенации: '%s'\n", a);
+    myStrcat(a, b);
+    printf("После конкатенации: '%s'\n", a);
+
+    return 0;
+}

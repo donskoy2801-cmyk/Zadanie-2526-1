@@ -1,0 +1,227 @@
+double **makeMatrix(int r, int c) {
+    double **m;
+    int i;
+
+    m = (double**)malloc(r * sizeof(double*));
+    if (m == NULL) return NULL;
+
+    for (i = 0; i < r; i++) {
+        m[i] = (double*)malloc(c * sizeof(double));
+        if (m[i] == NULL) {
+            int k;
+            for (k = 0; k < i; k++) free(m[k]);
+            free(m);
+            return NULL;
+        }
+    }
+    return m;
+}
+
+void deleteMatrix(double **m, int r) {
+    int i;
+    if (m == NULL) return;
+    for (i = 0; i < r; i++) free(m[i]);
+    free(m);
+}
+
+void showMatrix(double **m, int r, int c) {
+    int i, j;
+    for (i = 0; i < r; i++) {
+        for (j = 0; j < c; j++) {
+            printf("%10.4f ", m[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+void matrixMulNumber(double **m, int r, int c, double k) {
+    int i, j;
+    for (i = 0; i < r; i++) {
+        for (j = 0; j < c; j++) {
+            m[i][j] = m[i][j] * k;
+        }
+    }
+}
+
+void swapRowsSimple(double **m, int r1, int r2, int c) {
+    int j;
+    for (j = 0; j < c; j++) {
+        double t = m[r1][j];
+        m[r1][j] = m[r2][j];
+        m[r2][j] = t;
+    }
+}
+
+// b) детерминант (если не квадратная, то ошибка)
+double detMatrix(double **a, int r, int c, int *ok) {
+    double **m;
+    double det = 1.0;
+    int sign = 1;
+    int i, j, k;
+    double eps = 1e-12;
+
+    if (ok) *ok = 0;
+    if (r != c) return 0.0;
+
+    m = makeMatrix(r, c);
+    if (m == NULL) return 0.0;
+
+    if (ok) *ok = 1;
+
+    // копия
+    for (i = 0; i < r; i++) {
+        for (j = 0; j < c; j++) {
+            m[i][j] = a[i][j];
+        }
+    }
+
+    // Гаусс (делаем треугольную)
+    for (i = 0; i < r; i++) {
+        int pivot = i;
+
+        while (pivot < r && fabs(m[pivot][i]) < eps) pivot++;
+
+        if (pivot == r) {
+            deleteMatrix(m, r);
+            return 0.0; // столбец нулевой => det=0
+        }
+
+        if (pivot != i) {
+            swapRowsSimple(m, pivot, i, c);
+            sign = -sign;
+        }
+
+        for (k = i + 1; k < r; k++) {
+            double f = m[k][i] / m[i][i];
+            for (j = i; j < c; j++) {
+                m[k][j] = m[k][j] - f * m[i][j];
+            }
+        }
+    }
+
+    for (i = 0; i < r; i++) det = det * m[i][i];
+    det = det * sign;
+
+    deleteMatrix(m, r);
+    return det;
+}
+
+// c) обратная матрица (Гаусс-Жордан)
+// inv должно быть уже выделено n x n
+int inverseMatrixSimple(double **a, int r, int c, double **inv) {
+    int n = r;
+    double **m;            // расширенная [A | I]
+    int i, j, k;
+    double eps = 1e-12;
+
+    if (r != c) return 0;
+
+    m = makeMatrix(n, 2 * n);
+    if (m == NULL) return 0;
+
+    // собираем [A | I]
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) m[i][j] = a[i][j];
+        for (j = 0; j < n; j++) {
+            if (i == j) m[i][n + j] = 1.0;
+            else m[i][n + j] = 0.0;
+        }
+    }
+
+    for (i = 0; i < n; i++) {
+        int pivot = i;
+
+        while (pivot < n && fabs(m[pivot][i]) < eps) pivot++;
+
+        if (pivot == n) {
+            deleteMatrix(m, n);
+            return 0; // det=0, обратной нет
+        }
+
+        if (pivot != i) {
+            swapRowsSimple(m, pivot, i, 2 * n);
+        }
+
+        // делим строку, чтобы ведущий стал 1
+        {
+            double div = m[i][i];
+            for (j = 0; j < 2 * n; j++) {
+                m[i][j] = m[i][j] / div;
+            }
+        }
+
+        // зануляем остальные строки
+        for (k = 0; k < n; k++) {
+            if (k == i) continue;
+            {
+                double f = m[k][i];
+                for (j = 0; j < 2 * n; j++) {
+                    m[k][j] = m[k][j] - f * m[i][j];
+                }
+            }
+        }
+    }
+
+    // правая часть стала обратной
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            inv[i][j] = m[i][n + j];
+        }
+    }
+
+    deleteMatrix(m, n);
+    return 1;
+}
+
+int main(void) {
+    double **A;
+    double **Inv;
+    int r = 3, c = 3;
+
+    int ok;
+    double det;
+
+    A = makeMatrix(r, c);
+    Inv = makeMatrix(r, c);
+
+    if (A == NULL || Inv == NULL) {
+        printf("Ошибка: не хватает памяти\n");
+        deleteMatrix(A, r);
+        deleteMatrix(Inv, r);
+        return 1;
+    }
+
+    // пример матрицы
+    A[0][0] = 2; A[0][1] = 1; A[0][2] = 1;
+    A[1][0] = 1; A[1][1] = 3; A[1][2] = 2;
+    A[2][0] = 1; A[2][1] = 0; A[2][2] = 0;
+
+    printf("Исходная матрица A:\n");
+    showMatrix(A, r, c);
+
+    printf("\n(a) Умножение матрицы на число 2:\n");
+    matrixMulNumber(A, r, c, 2.0);
+    showMatrix(A, r, c);
+
+    // вернём обратно (чтобы дальше было удобно)
+    matrixMulNumber(A, r, c, 0.5);
+
+    printf("\n(b) Определитель:\n");
+    det = detMatrix(A, r, c, &ok);
+    if (!ok) {
+        printf("Ошибка: матрица не квадратная\n");
+    } else {
+        printf("det(A) = %.10g\n", det);
+    }
+
+    printf("\n(c) Обратная матрица:\n");
+    if (!inverseMatrixSimple(A, r, c, Inv)) {
+        printf("Ошибка: обратной матрицы нет (det=0) или матрица не квадратная\n");
+    } else {
+        showMatrix(Inv, r, c);
+    }
+
+    deleteMatrix(A, r);
+    deleteMatrix(Inv, r);
+    return 0;
+}

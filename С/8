@@ -1,0 +1,30 @@
+static void reverseString(char *s) {
+    int i;
+    int len = (int)strlen(s);
+    for (i = 0; i < len / 2; i++) {
+        char t = s[i];
+        s[i] = s[len - 1 - i];
+        s[len - 1 - i] = t;
+    }
+}
+
+int main(void) {
+    char s[256];
+
+    printf("Введите строку:\n");
+    if (!fgets(s, sizeof(s), stdin)) {
+        printf("Ошибка ввода!\n");
+        return 1;
+    }
+
+    // убираем перевод строки
+    if (strlen(s) > 0 && s[strlen(s) - 1] == '\n') {
+        s[strlen(s) - 1] = '\0';
+    }
+
+    printf("До:    %s\n", s);
+    reverseString(s);
+    printf("После: %s\n", s);
+
+    return 0;
+}
